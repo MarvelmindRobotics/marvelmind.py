@@ -8,6 +8,11 @@ Written by Alexander Rudykh (awesomequality@gmail.com)
 
 ## Attributes: ##
 
+**adr** - address of mobile beacon (from Dashboard) for data filtering. If it is None, every read data will be appended to buffer.
+
+*Default value: None*
+
+
 **tty** - serial port device name (physical or USB/virtual). It should be provided as an argument: 
 
   * /dev/ttyACM0 - typical for Linux
@@ -25,11 +30,11 @@ Written by Alexander Rudykh (awesomequality@gmail.com)
 *Default value: 3*
 
 
-**valuesUltrasoundPosition** - buffer of US position measures
+**valuesUltrasoundPosition** - buffer of US measured data (address of device, x, y, z (meters), angle (1/10 degree), timestamp (seconds)): [adr, x, y, z, ang, timestamp]
 
 **valuesImuRawData** - buffer of IMU raw measures (accelerometer, gyroscope, compass)
 
-**valuesImuData** - buffer of IMU and US based measures (position, angular position (quaternion), velocities, accelerations) [x, y, z, qw, qx, qy, qz, vx, vy, vz, ax, ay, az, timestamp]
+**valuesImuData** - buffer of IMU and US based measures (position, angular position (quaternion), velocities, accelerations): [x, y, z, qw, qx, qy, qz, vx, vy, vz, ax, ay, az, timestamp]
 
 
 **debug** - debug flag which activate console output	
