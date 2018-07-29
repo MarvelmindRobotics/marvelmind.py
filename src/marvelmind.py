@@ -5,6 +5,9 @@
 #
 ### Attributes:
 #
+#   adr - address of mobile beacon (from Dashboard) for data filtering. If it is None, every read data will be appended to buffer.
+#       default: None
+#
 #   tty - serial port device name (physical or USB/virtual). It should be provided as an argument: 
 #       /dev/ttyACM0 - typical for Linux / Raspberry Pi
 #       /dev/tty.usbmodem1451 - typical for Mac OS X
@@ -70,13 +73,13 @@ import math
 # import marvelmindQuaternion as mq
 
 class MarvelmindHedge (Thread):
-    def __init__ (self, adr, tty="/dev/ttyACM0", baud=9600, maxvaluescount=3, debug=False, recieveUltrasoundPositionCallback=None, recieveImuRawDataCallback=None, recieveImuDataCallback=None, recieveUltrasoundRawDataCallback=None):
+    def __init__ (self, adr=None, tty="/dev/ttyACM0", baud=9600, maxvaluescount=3, debug=False, recieveUltrasoundPositionCallback=None, recieveImuRawDataCallback=None, recieveImuDataCallback=None, recieveUltrasoundRawDataCallback=None):
         self.tty = tty  # serial
         self.baud = baud  # baudrate
         self.debug = debug  # debug flag
         self._bufferSerialDeque = collections.deque(maxlen=255)  # serial buffer
 
-        self.valuesUltrasoundPosition = collections.deque([[0]*5]*maxvaluescount, maxlen=maxvaluescount) # ultrasound position buffer
+        self.valuesUltrasoundPosition = collections.deque([[0]*6]*maxvaluescount, maxlen=maxvaluescount) # ultrasound position buffer
         self.recieveUltrasoundPositionCallback = recieveUltrasoundPositionCallback
         
         self.valuesImuRawData = collections.deque([[0]*10]*maxvaluescount, maxlen=maxvaluescount) # raw imu data buffer
@@ -159,15 +162,17 @@ class MarvelmindHedge (Thread):
                                 if (len(bufferList) > pktHdrOffset + 4 + msgLen + 2):
                                     usnCRC16 = 0
                                     if (isCmMessageDetected):
-                                        usnTimestamp, usnX, usnY, usnZ, usnAdr, usnCRC16 = struct.unpack_from ('<LhhhxBxxxxH', strbuf, pktHdrOffset + 5)
+                                        usnTimestamp, usnX, usnY, usnZ, usnAdr, usnAngle, usnCRC16 = struct.unpack_from ('<LhhhxBhxxH', strbuf, pktHdrOffset + 5)
                                         usnX = usnX/100.0
                                         usnY = usnY/100.0
                                         usnZ = usnZ/100.0
+                                        usnAngle = 0b0000111111111111&usnAngle
                                     elif (isMmMessageDetected):
-                                        usnTimestamp, usnX, usnY, usnZ, usnAdr, usnCRC16 = struct.unpack_from ('<LlllxBxxxxH', strbuf, pktHdrOffset + 5)
+                                        usnTimestamp, usnX, usnY, usnZ, usnAdr, usnAngle, usnCRC16 = struct.unpack_from ('<LlllxBhxxH', strbuf, pktHdrOffset + 5)
                                         usnX = usnX/1000.0
                                         usnY = usnY/1000.0
                                         usnZ = usnZ/1000.0
+                                        usnAngle = 0b0000111111111111&usnAngle
                                     elif (isRawImuMessageDetected):
                                         ax, ay, az, gx, gy, gz, mx, my, mz, timestamp, usnCRC16 = struct.unpack_from ('<hhhhhhhhhxxxxxxLxxxxH', strbuf, pktHdrOffset + 5)
                                     elif (isImuMessageDetected):
@@ -179,10 +184,11 @@ class MarvelmindHedge (Thread):
 
                                     if CRC_calc == usnCRC16:
                                         if (isMmMessageDetected or isCmMessageDetected):
-                                            value = [usnAdr, usnX, usnY, usnZ, usnTimestamp]
-                                            self.valuesUltrasoundPosition.append(value)
-                                            if (self.recieveUltrasoundPositionCallback is not None):
-                                                self.recieveUltrasoundPositionCallback()
+                                            value = [usnAdr, usnX, usnY, usnZ, usnAngle, usnTimestamp]
+                                            if (self.adr == usnAdr or self.adr is None):
+                                                self.valuesUltrasoundPosition.append(value)
+                                                if (self.recieveUltrasoundPositionCallback is not None):
+                                                    self.recieveUltrasoundPositionCallback()
                                         elif (isRawImuMessageDetected):
                                             value = [ax, ay, az, gx, gy, gz, mx, my, mz, timestamp]
                                             self.valuesImuRawData.append(value)
