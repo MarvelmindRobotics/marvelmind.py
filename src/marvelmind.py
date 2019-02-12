@@ -95,18 +95,27 @@ class MarvelmindHedge (Thread):
         self.pause = False
         self.terminationRequired = False
         
+        self.distancesUpdated= False;
+        
         self.adr = adr
         self.serialPort = None
         Thread.__init__(self)
 
     def print_position(self):
         if (isinstance(self.position()[1], int)):
-            print ("Hedge {:d}: X: {:d} m, Y: {:d} m, Z: {:d} m at time T: {:.2f}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4]/1000.0))
+            print ("Hedge {:d}: X: {:d} m, Y: {:d} m, Z: {:d} m, Angle: {:d} at time T: {:.2f}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4], self.position()[5]/1000.0))
         else:
-            print ("Hedge {:d}: X: {:.2f}, Y: {:.2f}, Z: {:.2f} at time T: {:.2f}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4]/1000.0))
+            print ("Hedge {:d}: X: {:.3f}, Y: {:.3f}, Z: {:.3f}, Angle: {:d} at time T: {:.2f}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4], self.position()[5]/1000.0))
 
     def position(self):
         return list(self.valuesUltrasoundPosition)[-1];
+           
+    def print_distances(self): 
+		self.distancesUpdated= False
+		print ("Distances: B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}   at time T: {:.2f}".format(self.distances()[1], self.distances()[2], self.distances()[3], self.distances()[4], self.distances()[5], self.distances()[6], self.distances()[7], self.distances()[8], self.distances()[9]/1000.0))
+        
+    def distances(self):
+        return list(self.valuesUltrasoundRawData)[-1];
     
     def stop(self):
         self.terminationRequired = True
@@ -177,6 +186,8 @@ class MarvelmindHedge (Thread):
                                         ax, ay, az, gx, gy, gz, mx, my, mz, timestamp, usnCRC16 = struct.unpack_from ('<hhhhhhhhhxxxxxxLxxxxH', strbuf, pktHdrOffset + 5)
                                     elif (isImuMessageDetected):
                                         x, y, z, qw, qx, qy, qz, vx, vy, vz, ax, ay, az, timestamp, usnCRC16 = struct.unpack_from ('<lllhhhhhhhhhhxxLxxxxH', strbuf, pktHdrOffset + 5)
+                                    elif (isDistancesMessageDetected):
+                                        HedgeAdr, b1, b1d, b2, b2d, b3, b3d, b4, b4d, timestamp,usnCRC16 = struct.unpack_from ('<BBlxBlxBlxBlxLxxxH', strbuf, pktHdrOffset + 5)
 
                                     crc16 = crcmod.predefined.Crc('modbus')
                                     crc16.update(strbuf[ pktHdrOffset : pktHdrOffset + msgLen + 5 ])
@@ -194,11 +205,12 @@ class MarvelmindHedge (Thread):
                                             self.valuesImuRawData.append(value)
                                             if (self.recieveImuRawDataCallback is not None):
                                                 self.recieveImuRawDataCallback()
-                                        # elif (isDistancesMessageDetected):
-                                        #     value = 
-                                        #     self.valuesUltrasoundRawData.append(value)
-                                        #     if (self.recieveUltrasoundRawDataCallback is not None):
-                                        #         self.recieveUltrasoundRawDataCallback()
+                                        elif (isDistancesMessageDetected):
+                                            value = [HedgeAdr, b1, b1d/1000.0, b2, b2d/1000.0, b3, b3d/1000.0, b4, b4d/1000.0, timestamp]
+                                            self.valuesUltrasoundRawData.append(value)
+                                            self.distancesUpdated= True
+                                            if (self.recieveUltrasoundRawDataCallback is not None):
+                                                self.recieveUltrasoundRawDataCallback()
                                         elif (isImuMessageDetected):
                                             value = [x/1000.0, y/1000.0, z/1000.0, qw/10000.0, qx/10000.0, qy/10000.0, qz/10000.0, vx/1000.0, vy/1000.0, vz/1000.0, ax/1000.0,ay/1000.0,az/1000.0, timestamp]
                                             self.valuesImuData.append(value)
