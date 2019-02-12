@@ -4,7 +4,7 @@ marvelmind.py includes small python class based on threading.Thread for receivin
 example.py is an example of use.
 Written by Alexander Rudykh (awesomequality@gmail.com)
 
-[Download](https://bitbucket.org/marvelmind_robotics/marvelmind.py/get/default.zip)
+[Download](https://github.com/MarvelmindRobotics/marvelmind.py/archive/master.zip)
 
 ## Attributes: ##
 
