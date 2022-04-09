@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # marvelmind.py - small class for recieve and parse coordinates from Marvelmind mobile beacon by USB/serial port
-# Written by Alexander Rudykh (awesomequality@gmail.com)
+# Written by Alexander Rudykh. Support: info@marvelmind.com
 #
 ### Attributes:
 #
