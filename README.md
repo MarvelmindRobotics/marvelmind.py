@@ -2,7 +2,8 @@
 
 marvelmind.py includes small python class based on threading.Thread for receiving and parsing coordinates data from Marvelmind mobile beacon by USB/serial port.
 example.py is an example of use.
-Written by Alexander Rudykh (awesomequality@gmail.com)
+Written by Alexander Rudykh.
+Support: info@marvelmind.com
 
 [Download](https://github.com/MarvelmindRobotics/marvelmind.py/archive/master.zip)
 
