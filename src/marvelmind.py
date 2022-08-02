@@ -79,6 +79,7 @@ import time
 from threading import Thread
 from threading import Event
 import math
+import datetime
 
 CRC16_TABLE = (
 0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
@@ -174,8 +175,13 @@ class MarvelmindHedge (Thread):
         Thread.__init__(self)
 
     def print_position(self):
-        if (isinstance(self.position()[1], int)):
-            print ("Hedge {:d}: X: {:d} m, Y: {:d} m, Z: {:d} m, Angle: {:d} at time T: {:.3f}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4], self.position()[5]/1000.0))
+        if (self.position()[6]):
+            tsec= int(math.trunc(self.position()[5]/1000.0))
+            tmsec= int(self.position()[5] % 1000)
+            dt = datetime.datetime.utcfromtimestamp(tsec)
+            print ("Hedge {:d}: X: {:.3f} m, Y: {:.3f} m, Z: {:.3f} m, Angle: {:d} at time T: {:%Y-%m-%d %H:%M:%S}-{:03d}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4], dt, tmsec))
+        elif (isinstance(self.position()[1], int)):
+            print ("Hedge {:d}: X: {:.3f} m, Y: {:.3f} m, Z: {:.3f} m, Angle: {:d} at time T: {:.3f}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4], self.position()[5]/1000.0))
         else:
             print ("Hedge {:d}: X: {:.3f}, Y: {:.3f}, Z: {:.3f}, Angle: {:d} at time T: {:.3f}".format(self.position()[0], self.position()[1], self.position()[2], self.position()[3], self.position()[4], self.position()[5]/1000.0))
 
@@ -186,7 +192,13 @@ class MarvelmindHedge (Thread):
     def print_distances(self): 
         self.distancesUpdated= False
         rd= self.distances()
-        print ("Distances: From:H{:d} to  B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}   at time T: {:.3f}".format(rd[0], rd[1], rd[2], rd[3], rd[4], rd[5], rd[6], rd[7], rd[8], rd[9]/1000.0))
+        if (rd[10]):
+            tsec= int(math.trunc(rd[9]/1000.0))
+            tmsec= int(rd[9] % 1000)
+            dt = datetime.datetime.utcfromtimestamp(tsec)
+            print ("Distances: From:H{:d} to  B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}   at time T: {:%Y-%m-%d %H:%M:%S}-{:03d}".format(rd[0], rd[1], rd[2], rd[3], rd[4], rd[5], rd[6], rd[7], rd[8], dt, tmsec))
+        else:
+            print ("Distances: From:H{:d} to  B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}, B{:d}:{:.3f}   at time T: {:.3f}".format(rd[0], rd[1], rd[2], rd[3], rd[4], rd[5], rd[6], rd[7], rd[8], rd[9]/1000.0))
         
     def distances(self):
         return list(self.valuesUltrasoundRawData)[-1];
@@ -194,7 +206,13 @@ class MarvelmindHedge (Thread):
     def print_raw_imu(self): 
         self.rawImuUpdated= False
         ri= self.raw_imu()
-        print ("Raw IMU: AX:{:d}, AY:{:d}, AZ:{:d},   GX:{:d}, GY:{:d}, GZ:{:d},   MX:{:d}, MY:{:d}, MZ:{:d},   at time T: {:.3f}".format(ri[0], ri[1], ri[2], ri[3], ri[4], ri[5], ri[6], ri[7], ri[8], ri[9]/1000.0))
+        if (ri[10]):
+            tsec= int(math.trunc(ri[9]/1000.0))
+            tmsec= int(ri[9] % 1000)
+            dt = datetime.datetime.utcfromtimestamp(tsec)
+            print ("Raw IMU: AX:{:d}, AY:{:d}, AZ:{:d},   GX:{:d}, GY:{:d}, GZ:{:d},   MX:{:d}, MY:{:d}, MZ:{:d},   at time T: {:%Y-%m-%d %H:%M:%S}-{:03d}".format(ri[0], ri[1], ri[2], ri[3], ri[4], ri[5], ri[6], ri[7], ri[8], dt, tmsec))
+        else:
+            print ("Raw IMU: AX:{:d}, AY:{:d}, AZ:{:d},   GX:{:d}, GY:{:d}, GZ:{:d},   MX:{:d}, MY:{:d}, MZ:{:d},   at time T: {:.3f}".format(ri[0], ri[1], ri[2], ri[3], ri[4], ri[5], ri[6], ri[7], ri[8], ri[9]/1000.0))
         
     def raw_imu(self):
         return list(self.valuesImuRawData)[-1];
@@ -202,7 +220,13 @@ class MarvelmindHedge (Thread):
     def print_imu_fusion(self): 
         self.fusionImuUpdated= False
         ifd= self.imu_fusion()
-        print ("IMU fusion: X:{:.3f}, Y:{:.3f}, Z:{:.3f},   QW:{:.3f}, QX:{:.3f}, QY:{:.3f}, QZ:{:.3f},   VX:{:.3f}, VY:{:.3f}, VZ:{:.3f},   AX:{:.3f}, AY:{:.3f}, AZ:{:.3f},   at time T: {:.3f}".format(ifd[0], ifd[1], ifd[2], ifd[3], ifd[4], ifd[5], ifd[6], ifd[7], ifd[8], ifd[9], ifd[10], ifd[11], ifd[12], ifd[13]/1000.0))
+        if (ifd[14]):
+            tsec= int(math.trunc(ifd[13]/1000.0))
+            tmsec= int(ifd[13] % 1000)
+            dt = datetime.datetime.utcfromtimestamp(tsec)
+            print ("IMU fusion: X:{:.3f}, Y:{:.3f}, Z:{:.3f},   QW:{:.3f}, QX:{:.3f}, QY:{:.3f}, QZ:{:.3f},   VX:{:.3f}, VY:{:.3f}, VZ:{:.3f},   AX:{:.3f}, AY:{:.3f}, AZ:{:.3f},   at time T: {:%Y-%m-%d %H:%M:%S}-{:03d}".format(ifd[0], ifd[1], ifd[2], ifd[3], ifd[4], ifd[5], ifd[6], ifd[7], ifd[8], ifd[9], ifd[10], ifd[11], ifd[12], dt, tmsec))
+        else:
+            print ("IMU fusion: X:{:.3f}, Y:{:.3f}, Z:{:.3f},   QW:{:.3f}, QX:{:.3f}, QY:{:.3f}, QZ:{:.3f},   VX:{:.3f}, VY:{:.3f}, VZ:{:.3f},   AX:{:.3f}, AY:{:.3f}, AZ:{:.3f},   at time T: {:.3f}".format(ifd[0], ifd[1], ifd[2], ifd[3], ifd[4], ifd[5], ifd[6], ifd[7], ifd[8], ifd[9], ifd[10], ifd[11], ifd[12], ifd[13]/1000.0))
         
     def imu_fusion(self):
         return list(self.valuesImuData)[-1];
@@ -271,52 +295,107 @@ class MarvelmindHedge (Thread):
 #                           print(bufferList)
                             isMmMessageDetected = False
                             isCmMessageDetected = False
+                            isNTMmMessageDetected = False
                             isRawImuMessageDetected = False
+                            isNTRawImuMessageDetected = False
                             isImuMessageDetected = False
+                            isNTImuMessageDetected = False
                             isDistancesMessageDetected = False
+                            isNTDistancesMessageDetected = False
                             isTelemetryMessageDetected= False
                             isQualityMessageDetected= False
                             isWaypointsMessageDetected= False
-                            pktHdrOffsetCm = strbuf.find(b'\xff\x47\x01\x00')
-                            if (pktHdrOffsetCm == -1):
+                            anyMsgFound= False
+                            isRealtime= False
+                                
+                            if (not anyMsgFound):
+                                pktHdrOffsetCm = strbuf.find(b'\xff\x47\x01\x00')
+                                if (pktHdrOffsetCm != -1):
+                                    anyMsgFound = True
+                                    isCmMessageDetected = True
+                                    if (self.debug): print ('Message with US-position(cm) was detected') 
+									
+                            if (not anyMsgFound):
                                 pktHdrOffsetMm = strbuf.find(b'\xff\x47\x11\x00')
-                                if (pktHdrOffsetMm == -1):
-                                    pktHdrOffsetRawImu = strbuf.find(b'\xff\x47\x03\x00')
-                                    if (pktHdrOffsetRawImu == -1):
-                                        pktHdrOffsetDistances = strbuf.find(b'\xff\x47\x04\x00')
-                                        if (pktHdrOffsetDistances == -1):
-                                            pktHdrOffsetImu = strbuf.find(b'\xff\x47\x05\x00')
-                                            if (pktHdrOffsetImu == -1):
-                                                pktHdrOffsetTelemetry = strbuf.find(b'\xff\x47\x06\x00')
-                                                if (pktHdrOffsetTelemetry == -1):
-                                                    pktHdrOffsetQuality= strbuf.find(b'\xff\x47\x07\x00')
-                                                    if (pktHdrOffsetQuality == -1):
-                                                        pktHdrOffsetWaypoints= strbuf.find(b'\xff\x4a\x01\x02')
-                                                        if (pktHdrOffsetWaypoints != -1):
-                                                            isWaypointsMessageDetected= True
-                                                            if (self.debug): print ('Message with waypoints data was detected')
-                                                    else:
-                                                        isQualityMessageDetected= True
-                                                        if (self.debug): print ('Message with quality data was detected')
-                                                else:
-                                                    isTelemetryMessageDetected= True
-                                                    if (self.debug): print ('Message with telemetry data was detected')
-                                            else:
-                                                isImuMessageDetected = True
-                                                if (self.debug): print ('Message with processed IMU data was detected')
-                                        else:
-                                            isDistancesMessageDetected = True
-                                            if (self.debug): print ('Message with distances was detected') 
-                                    else:
-                                        isRawImuMessageDetected = True
-                                        if (self.debug): print ('Message with raw IMU data was detected') 
-                                else:
+                                if (pktHdrOffsetMm != -1):
+                                    anyMsgFound = True
                                     isMmMessageDetected = True
                                     if (self.debug): print ('Message with US-position(mm) was detected')
-                            else:
-                                isCmMessageDetected = True
-                                if (self.debug): print ('Message with US-position(cm) was detected') 								     
-												
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetRawImu = strbuf.find(b'\xff\x47\x03\x00')
+                                if (pktHdrOffsetRawImu != -1):
+                                    anyMsgFound = True
+                                    isRawImuMessageDetected = True
+                                    if (self.debug): print ('Message with raw IMU data was detected') 
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetDistances = strbuf.find(b'\xff\x47\x04\x00')
+                                if (pktHdrOffsetDistances != -1):
+                                    anyMsgFound = True
+                                    isDistancesMessageDetected = True
+                                    if (self.debug): print ('Message with distances was detected') 
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetImu = strbuf.find(b'\xff\x47\x05\x00')
+                                if (pktHdrOffsetImu != -1):
+                                    anyMsgFound = True
+                                    isImuMessageDetected = True
+                                    if (self.debug): print ('Message with processed IMU data was detected')
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetTelemetry = strbuf.find(b'\xff\x47\x06\x00')
+                                if (pktHdrOffsetTelemetry != -1):
+                                    anyMsgFound = True
+                                    isTelemetryMessageDetected= True
+                                    if (self.debug): print ('Message with telemetry data was detected')
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetQuality= strbuf.find(b'\xff\x47\x07\x00')
+                                if (pktHdrOffsetQuality != -1):
+                                    anyMsgFound = True
+                                    isQualityMessageDetected= True
+                                    if (self.debug): print ('Message with quality data was detected')
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetWaypoints= strbuf.find(b'\xff\x4a\x01\x02')
+                                if (pktHdrOffsetWaypoints != -1):
+                                    anyMsgFound = True
+                                    isWaypointsMessageDetected= True
+                                    if (self.debug): print ('Message with waypoints data was detected')
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetMm_NT = strbuf.find(b'\xff\x47\x81\x00')
+                                if (pktHdrOffsetMm_NT != -1):
+                                    anyMsgFound = True
+                                    isRealtime= True
+                                    isNTMmMessageDetected = True
+                                    if (self.debug): print ('Message with realtime US-position(mm) was detected')
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetRawImu_NT = strbuf.find(b'\xff\x47\x83\x00')
+                                if (pktHdrOffsetRawImu_NT != -1):
+                                    anyMsgFound = True
+                                    isRealtime= True
+                                    isNTRawImuMessageDetected = True
+                                    if (self.debug): print ('Message with realtime raw IMU data was detected') 
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetDistances_NT = strbuf.find(b'\xff\x47\x84\x00')
+                                if (pktHdrOffsetDistances_NT != -1):
+                                    anyMsgFound = True
+                                    isRealtime= True
+                                    isNTDistancesMessageDetected = True
+                                    if (self.debug): print ('Message with realtime raw distances was detected') 
+                                    
+                            if (not anyMsgFound):
+                                pktHdrOffsetImu_NT = strbuf.find(b'\xff\x47\x85\x00')
+                                if (pktHdrOffsetImu_NT != -1):
+                                    anyMsgFound = True
+                                    isRealtime= True
+                                    isNTImuMessageDetected = True
+                                    if (self.debug): print ('Message with realtime processed IMU data was detected')
+																     												
                             msgLen = ord(bufferList[pktHdrOffset + 4])
                             if (self.debug): print ('Message length: ', msgLen)
                             
@@ -339,12 +418,26 @@ class MarvelmindHedge (Thread):
                                         usnAngle = 0b0000111111111111&usnAngle
                                         if ((usnFlags&0x40)==0):
                                             self.adr= usnAdr
+                                    elif (isNTMmMessageDetected):
+                                        usnTimestamp, usnX, usnY, usnZ, usnFlags, usnAdr, usnAngle, usnCRC16 = struct.unpack_from ('<qlllBBhxxH', strbuf, pktHdrOffset + 5)
+                                        usnX = usnX/1000.0
+                                        usnY = usnY/1000.0
+                                        usnZ = usnZ/1000.0
+                                        usnAngle = 0b0000111111111111&usnAngle
+                                        if ((usnFlags&0x40)==0):
+                                            self.adr= usnAdr
                                     elif (isRawImuMessageDetected):
                                         ax, ay, az, gx, gy, gz, mx, my, mz, timestamp, usnCRC16 = struct.unpack_from ('<hhhhhhhhhxxxxxxLxxxxH', strbuf, pktHdrOffset + 5)
+                                    elif (isNTRawImuMessageDetected):
+                                        ax, ay, az, gx, gy, gz, mx, my, mz, timestamp, usnCRC16 = struct.unpack_from ('<hhhhhhhhhxxxxxxqxxxxH', strbuf, pktHdrOffset + 5)
                                     elif (isImuMessageDetected):
                                         x, y, z, qw, qx, qy, qz, vx, vy, vz, ax, ay, az, timestamp, usnCRC16 = struct.unpack_from ('<lllhhhhhhhhhhxxLxxxxH', strbuf, pktHdrOffset + 5)
+                                    elif (isNTImuMessageDetected):
+                                        x, y, z, qw, qx, qy, qz, vx, vy, vz, ax, ay, az, timestamp, usnCRC16 = struct.unpack_from ('<lllhhhhhhhhhhxxqxxxxH', strbuf, pktHdrOffset + 5)
                                     elif (isDistancesMessageDetected):
                                         HedgeAdr, b1, b1d, b2, b2d, b3, b3d, b4, b4d, timestamp,usnCRC16 = struct.unpack_from ('<BBlxBlxBlxBlxLxxxH', strbuf, pktHdrOffset + 5)
+                                    elif (isNTDistancesMessageDetected):
+                                        HedgeAdr, b1, b1d, b2, b2d, b3, b3d, b4, b4d, timestamp,usnCRC16 = struct.unpack_from ('<BBlxBlxBlxBlxqxxxH', strbuf, pktHdrOffset + 5)
                                     elif (isTelemetryMessageDetected):
                                         vbat, rssi_dbm, usnCRC16 = struct.unpack_from ('<HbxxxxxxxxxxxxxH', strbuf, pktHdrOffset + 5)
                                     elif (isQualityMessageDetected):
@@ -355,28 +448,28 @@ class MarvelmindHedge (Thread):
                                     CRC_calc = crc16_mb(bytearray(strbuf), pktHdrOffset, msgLen+5)
 
                                     if CRC_calc == usnCRC16:
-                                        if (isMmMessageDetected or isCmMessageDetected):
+                                        if (isMmMessageDetected or isCmMessageDetected or isNTMmMessageDetected):
                                             self.positionUpdated= True
-                                            value = [usnAdr, usnX, usnY, usnZ, usnAngle, usnTimestamp]
+                                            value = [usnAdr, usnX, usnY, usnZ, usnAngle, usnTimestamp, isRealtime]
                                             if (self.adr == usnAdr or self.adr is None):
                                                 self.valuesUltrasoundPosition.append(value)
                                                 if (self.recieveUltrasoundPositionCallback is not None):
                                                     self.recieveUltrasoundPositionCallback()
-                                        elif (isRawImuMessageDetected):
+                                        elif (isRawImuMessageDetected or isNTRawImuMessageDetected):
                                             self.rawImuUpdated= True
-                                            value = [ax, ay, az, gx, gy, gz, mx, my, mz, timestamp]
+                                            value = [ax, ay, az, gx, gy, gz, mx, my, mz, timestamp, isRealtime]
                                             self.valuesImuRawData.append(value)
                                             if (self.recieveImuRawDataCallback is not None):
                                                 self.recieveImuRawDataCallback()
-                                        elif (isDistancesMessageDetected):
-                                            value = [HedgeAdr, b1, b1d/1000.0, b2, b2d/1000.0, b3, b3d/1000.0, b4, b4d/1000.0, timestamp]
+                                        elif (isDistancesMessageDetected or isNTDistancesMessageDetected):
+                                            value = [HedgeAdr, b1, b1d/1000.0, b2, b2d/1000.0, b3, b3d/1000.0, b4, b4d/1000.0, timestamp, isRealtime]
                                             self.valuesUltrasoundRawData.append(value)
                                             self.distancesUpdated= True
                                             if (self.recieveUltrasoundRawDataCallback is not None):
                                                 self.recieveUltrasoundRawDataCallback()
-                                        elif (isImuMessageDetected):
+                                        elif (isImuMessageDetected or isNTImuMessageDetected):
                                             self.fusionImuUpdated= True
-                                            value = [x/1000.0, y/1000.0, z/1000.0, qw/10000.0, qx/10000.0, qy/10000.0, qz/10000.0, vx/1000.0, vy/1000.0, vz/1000.0, ax/1000.0,ay/1000.0,az/1000.0, timestamp]
+                                            value = [x/1000.0, y/1000.0, z/1000.0, qw/10000.0, qx/10000.0, qy/10000.0, qz/10000.0, vx/1000.0, vy/1000.0, vz/1000.0, ax/1000.0,ay/1000.0,az/1000.0, timestamp, isRealtime]
                                             self.valuesImuData.append(value)
                                             if (self.recieveImuDataCallback is not None):
                                                 self.recieveImuDataCallback()
