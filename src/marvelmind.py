@@ -139,6 +139,7 @@ class MarvelmindHedge (Thread):
         self.debug = debug  # debug flag
         self._bufferSerialDeque = collections.deque(maxlen=255)  # serial buffer
         self._bufferSerialReply= bytearray(6)
+        self._userDataArray= bytearray(255)
 
         self.valuesUltrasoundPosition = collections.deque([[0]*6]*maxvaluescount, maxlen=maxvaluescount) # ultrasound position buffer
         self.recieveUltrasoundPositionCallback = recieveUltrasoundPositionCallback
@@ -155,6 +156,7 @@ class MarvelmindHedge (Thread):
         self.valuesTelemetryData = collections.deque([[0]*5]*maxvaluescount, maxlen=maxvaluescount)
         self.valuesQualityData = collections.deque([[0]*5]*maxvaluescount, maxlen=maxvaluescount)
         self.valuesWaypointData = collections.deque([[0]*16]*maxvaluescount, maxlen=maxvaluescount)
+        self.valuesUserData = collections.deque([[0]*5]*maxvaluescount, maxlen=maxvaluescount)
 
 
         self.pause = False
@@ -167,6 +169,7 @@ class MarvelmindHedge (Thread):
         self.telemetryUpdated= False
         self.qualityUpdated= False
         self.waypointsUpdated= False
+        self.userDataUpdated= False
         
         self.adr = adr
         self.serialPort = None
@@ -267,6 +270,24 @@ class MarvelmindHedge (Thread):
         self._bufferSerialReply[4]= CRC_calcReply & 0xff
         self._bufferSerialReply[5]= (CRC_calcReply>>8) & 0xff
         self.serialPort.write(self._bufferSerialReply)
+        
+    def user_data(self):
+        return list(self.valuesUserData)[-1];
+        
+    def print_user_data(self): 
+        self.userDataUpdated= False
+        ud= self.user_data()
+        tval= ud[0][0]
+        tsec= int(math.trunc(tval/1000.0))
+        tmsec= int(tval % 1000)
+        dt = datetime.datetime.utcfromtimestamp(tsec)
+        print("User data   at time T: {:%Y-%m-%d %H:%M:%S}-{:03d} : ".format(dt, tmsec));
+        dsize= ud[1][0]
+        s= "    "
+        for x in range(0, dsize-8):
+            s= s + str(ud[2][x]).zfill(3) + ", "
+        print(s)
+        
     
     def stop(self):
         self.terminationRequired = True
@@ -305,6 +326,7 @@ class MarvelmindHedge (Thread):
                             isTelemetryMessageDetected= False
                             isQualityMessageDetected= False
                             isWaypointsMessageDetected= False
+                            isUserDataMessageDetected= False
                             anyMsgFound= False
                             isRealtime= False
                                 
@@ -395,6 +417,14 @@ class MarvelmindHedge (Thread):
                                     isRealtime= True
                                     isNTImuMessageDetected = True
                                     if (self.debug): print ('Message with realtime processed IMU data was detected')
+                                    
+                            if (not anyMsgFound):
+                                pktHdrUserData = strbuf.find(b'\xff\x4a\x80\x02')
+                                if (pktHdrUserData != -1):
+                                    anyMsgFound = True
+                                    isRealtime= True
+                                    isUserDataMessageDetected = True
+                                    if (self.debug): print ('Message with user payload data was detected')
 																     												
                             msgLen = ord(bufferList[pktHdrOffset + 4])
                             if (self.debug): print ('Message length: ', msgLen)
@@ -444,6 +474,13 @@ class MarvelmindHedge (Thread):
                                         quality_addr, quality_per, usnCRC16 = struct.unpack_from ('<BBxxxxxxxxxxxxxxH', strbuf, pktHdrOffset + 5)
                                     elif (isWaypointsMessageDetected):
                                         mvmType, mvmIndex, mvmTotal, mvmParam1, mvmParam2, mvmParam3, usnCRC16 = struct.unpack_from ('<BBBhhhxxxH', strbuf, pktHdrOffset + 5)
+                                    elif isUserDataMessageDetected:
+                                        timestamp = struct.unpack_from ('<q', strbuf, pktHdrOffset + 5)
+                                        userDataSize = struct.unpack_from ('<B', strbuf, pktHdrOffset + 4)
+                                        for x in range(0, userDataSize[0]-8):
+                                            tmpv= struct.unpack_from ('<B', strbuf, pktHdrOffset + 5 + 8 + x)[0]
+                                            self._userDataArray[x] = tmpv
+                                        usnCRC16 = struct.unpack_from ('<H', strbuf, pktHdrOffset + 5 + userDataSize[0])[0]
 
                                     CRC_calc = crc16_mb(bytearray(strbuf), pktHdrOffset, msgLen+5)
 
@@ -485,7 +522,11 @@ class MarvelmindHedge (Thread):
                                             self.waypointsUpdated= True   
                                             value = [mvmType, mvmIndex, mvmTotal, mvmParam1, mvmParam2, mvmParam3] 
                                             self.valuesWaypointData.append(value) 
-                                            self.replyWaypointRcvSuccess()                    
+                                            self.replyWaypointRcvSuccess()  
+                                        elif (isUserDataMessageDetected):
+                                            self.userDataUpdated= True   
+                                            value = [timestamp, userDataSize, self._userDataArray] 
+                                            self.valuesUserData.append(value)                  
                                     else:
                                         if self.debug:
                                             print ('\n*** CRC ERROR')

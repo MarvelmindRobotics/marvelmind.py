@@ -34,6 +34,9 @@ def main():
                 
             if (hedge.waypointsUpdated):
                 hedge.print_waypoint()
+                
+            if (hedge.userDataUpdated):
+                hedge.print_user_data()
         except KeyboardInterrupt:
             hedge.stop()  # stop and close serial port
             sys.exit()
