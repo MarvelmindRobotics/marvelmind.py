@@ -10,8 +10,10 @@ Support: info@marvelmind.com
 Notes about using the example: <br />
 1. You should achieve a good tracking before using the example. <br />
 Please refer to operating manual for details: [https://marvelmind.com/pics/marvelmind_navigation_system_manual.pdf](https://marvelmind.com/pics/marvelmind_navigation_system_manual.pdf) <br />
-2. When you finish build the map, you can disconnect modem from the PC and connect to any USB charger. 
-Then you can connect a mobile beacon to the PC for receiving location data. <br/>
+2. When you finish build the map, you can: <br/>
+2.1. If you want to get location and other data via mobile beacon, disconnect modem from the PC and connect to any USB charger. 
+Then you can connect a mobile beacon to the PC for receiving data. <br/>
+2.2. If you want to get location data via the modem, keep it connected to the PC via USB.
 3. You should close the dashboard on the PC where you run the example, because dashboard and the example can't share the serial port.
 
 
